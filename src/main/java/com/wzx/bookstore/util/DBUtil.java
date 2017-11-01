@@ -2,33 +2,58 @@ package com.wzx.bookstore.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-public class DBUtil {
 
-	private final static String URL="jdbc:mysql://119.29.174.85:3306/bookstore";
-	private final static String USER="book";
-	private final static String PASS="123456";
-	private final static String DRIVER="com.mysql.jdbc.Driver";
-	private Connection conn;
-	public void connection(){
-		
-		try {
-			
-			Class.forName(DRIVER);
-			conn = DriverManager.getConnection(URL, USER, PASS);
-			System.out.println(conn.toString());
-			
-		} catch (ClassNotFoundException e) {
+public abstract class DBUtil {
+	protected Connection conn = null;
+	protected PreparedStatement ps = null;
 	
-			
-			e.printStackTrace();
-		} catch (SQLException e) {
-			
-			e.printStackTrace();
-		}
+	public DBUtil() throws SQLException{
+		
+		conn = DBConn.getConnection();
 		
 	}
+
+	public void setPreparedStatement(String sql,Object ... obj){
+	
+		 try {
+			 ps = conn.prepareStatement(sql);
+			 for(int i = 0 ; i < obj.length;i++){
+				 
+				 ps.setObject(i+1, obj[i]);
+				 
+			 }
+			
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+	
+	}
+	
+	
+	public void closeDB(){
+		
+		DBConn.closeDB(ps, conn);
+		
+	}
+	public void closeDB(ResultSet rs){
+		
+		DBConn.closeDB(conn, ps, rs);
+		
+	}
+	
+	//增，删，改
+	public abstract boolean  executeUpdates(String sql,Object...obj);
+	
+	public abstract ResultSet executeQuerys(String sql,Object...obj);
+	
+	
+
 }
 
